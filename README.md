@@ -11,36 +11,37 @@
 	<a href="LICENSE"><img src="https://img.shields.io/badge/License-LGPL--3.0-blue.svg" alt="License" /></a>
 </p>
 
-# BedrockProtocol (Amber-PM)
+# BedrockProtocol-Legacy (Amber-PM) — MCPE 1.2.13 (protocol 223)
 
-Protocol packet implementation used by **AmberPM** for its primary multi-version range: **v1.20.0 (protocol 589)** through **v1.26.30/40 (protocol ~1001-2168)**.
-
-Sourced from `vendor/vapebw/bedrock-protocol` inside the AmberPM project.
+Complete, original implementation of the network protocol packets for **Minecraft: Pocket Edition 1.2.13** (protocol **223**), as defined by PocketMine-MP for that version — real packet classes, not a translation/compatibility layer.
 
 ## Contents
 
 ```
-src/
+src/protocol/
+├── ProtocolInfo.php          # CURRENT_PROTOCOL = 223, MINECRAFT_VERSION = 'v1.2.13', all packet IDs
+├── PacketPool.php            # Packet registry/factory
+├── DataPacket.php / Packet.php
+├── LoginPacket.php, LevelEventPacket.php, MovePlayerPacket.php, StartGamePacket.php, ... (one class per packet)
+└── types/                    # Helper types used inside packets
 ```
 
-Packet classes, serializers, and type definitions for every modern protocol version AmberPM handles through its dynamic multi-version translation layer.
+122 files total (packet classes + types).
 
-## Note
+## Known issues
 
-This repo does **not** include protocol handling for legacy protocol 223 (MCPE 1.2.13). That client predates several modern Bedrock networking concepts (the item type dictionary handshake, block-palette/runtime-ID handshake, `ItemStackRequestPacket`, `CreativeContentPacket`, `AvailableActorIdentifiersPacket`, `BiomeDefinitionListPacket`, modern crafting stations, the current `EntityMetadataFlags` layout, and the current `AvailableCommandsPacket` layout) and is handled by a dedicated legacy compatibility layer instead. See [BedrockProtocol-Legacy](https://github.com/Amber-PM/BedrockProtocol-Legacy).
+AmberPM's legacy compatibility layer for this exact protocol (223 / MCPE 1.2.13) is **experimental** and has known, unresolved gameplay issues:
 
-Protocol 223 support is **experimental** and has known unresolved issues — see [Known issues with the multiprotocol / legacy layer](#known-issues-with-the-multiprotocol--legacy-layer) below.
+1. **Crafting results are granted and then rolled back** — the crafted item briefly appears, then the transaction is rolled back and ingredients are restored.
+2. **Recipe-book category switching and search crash the client**.
+3. **Modern players become invisible to legacy clients** after combat or command execution.
 
-## Known issues with the multiprotocol / legacy layer
+Full details, reproduction steps, and status: see [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).
 
-These affect legacy protocol 223 (MCPE 1.2.13) clients specifically; modern-protocol clients (589-1001) are not affected.
-
-1. **Crafting results are granted and then rolled back** — ingredients are consumed, the result briefly appears, then the transaction is rolled back and ingredients are restored. The legacy inventory-transaction conversion path is currently unreliable.
-2. **Recipe-book category switching and search crash the client** — opening the recipe book's search UI or switching categories closes the 1.2.13 client.
-3. **Modern players become invisible to legacy clients** — after combat or a command is executed, a modern-protocol player disappears from a 1.2.13 client's view (while still connected and visible to modern clients). Root cause not yet verified.
-
-Full details, reproduction steps, and status tracking: `KNOWN_ISSUES.md` in the full Amber source repo. Guidance for adding/fixing support for legacy versions: `ADDING_LEGACY_VERSIONS.md` in the same repo.
+Guidance for extending or fixing legacy-protocol support (how the compatibility layer is organized, what's required to add another legacy version, the full implementation/testing checklist): see [`ADDING_LEGACY_VERSIONS.md`](ADDING_LEGACY_VERSIONS.md).
 
 ## Origin
 
-Extracted from `PockeT/vendor/vapebw/bedrock-protocol/` of the Amber-PM/Amber project.
+Extracted from `src/pocketmine/network/mcpe/protocol/` of the `PocketMine-MP-MultiProtocol` project (`master` branch).
+
+Sibling repo: [BedrockData-Legacy](https://github.com/Amber-PM/BedrockData-Legacy) · Full source: [Bedrock-MultiProtocol-Legacy](https://github.com/Amber-PM/Bedrock-MultiProtocol-Legacy)
